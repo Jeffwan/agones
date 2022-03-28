@@ -49,6 +49,9 @@ const (
 
 	// FeatureSDKGracefulTermination is a feature flag that enables SDK to support gracefulTermination
 	FeatureSDKGracefulTermination Feature = "SDKGracefulTermination"
+
+	// FeatureSkipSidecarCreation is a feature flag that disable sdk server sidecar creation.
+	FeatureSkipSidecarCreation Feature = "SkipSidecarCreation"
 )
 
 var (
@@ -63,6 +66,7 @@ var (
 		FeaturePlayerAllocationFilter: false,
 		FeatureCustomFasSyncInterval:  false,
 		FeatureSDKGracefulTermination: false,
+		FeatureSkipSidecarCreation:    false,
 	}
 
 	// featureGates is the storage of what features are enabled

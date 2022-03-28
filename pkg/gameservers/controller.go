@@ -543,8 +543,15 @@ func (c *Controller) syncDevelopmentGameServer(ctx context.Context, gs *agonesv1
 
 // createGameServerPod creates the backing Pod for a given GameServer
 func (c *Controller) createGameServerPod(ctx context.Context, gs *agonesv1.GameServer) (*agonesv1.GameServer, error) {
-	sidecar := c.sidecar(gs)
-	pod, err := gs.Pod(sidecar)
+	var pod *corev1.Pod
+	var err error
+	if runtime.FeatureEnabled(runtime.FeatureSkipSidecarCreation) {
+		pod, err = gs.Pod()
+	} else {
+		sidecar := c.sidecar(gs)
+		pod, err = gs.Pod(sidecar)
+	}
+
 	if err != nil {
 		// this shouldn't happen, but if it does.
 		c.loggerForGameServer(gs).WithError(err).Error("error creating pod from Game Server")
@@ -596,6 +603,7 @@ func (c *Controller) createGameServerPod(ctx context.Context, gs *agonesv1.GameS
 	return gs, nil
 }
 
+// TODO: skip creating the sidecar container here. How to handle those images.
 // sidecar creates the sidecar container for a given GameServer
 func (c *Controller) sidecar(gs *agonesv1.GameServer) corev1.Container {
 	sidecar := corev1.Container{
@@ -603,6 +611,7 @@ func (c *Controller) sidecar(gs *agonesv1.GameServer) corev1.Container {
 		Image: c.sidecarImage,
 		Env: []corev1.EnvVar{
 			{
+				// TODO: is this something different? How can we support this kind of dynamic cases? -> check with chongyang if rest components has similar cases.
 				Name:  "GAMESERVER_NAME",
 				Value: gs.ObjectMeta.Name,
 			},
@@ -615,6 +624,7 @@ func (c *Controller) sidecar(gs *agonesv1.GameServer) corev1.Container {
 				},
 			},
 			{
+				// TODO: here, let's check how feature gates affects sdkserver.
 				Name:  "FEATURE_GATES",
 				Value: runtime.EncodeFeatures(),
 			},
